@@ -13,6 +13,7 @@
         "no-console": "off",
         "no-unused-vars": "warn",
         "no-param-reassign": "off",
+        "no-plusplus":"off",
         "quotes": [
             "error",
             "single"
