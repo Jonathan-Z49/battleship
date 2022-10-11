@@ -19,5 +19,6 @@
         ],
         "linebreak-style": 0,
         "no-use-before-define": ["error", {"functions": false, "classes": false}]
-    }
+    },
+    "ignorePatterns":["./src/__tests__/gameboard.test.js"]
 }
