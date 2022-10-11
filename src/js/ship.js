@@ -1,6 +1,8 @@
 export default class Ship {
   sunk = false;
 
+  size = 0;
+
   hitCount = 0;
 
   constructor(size) {
