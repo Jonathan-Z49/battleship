@@ -7,3 +7,4 @@ import GameBoard from './gameboard';
 const myBoard = new GameBoard();
 displayDOM.createBoardDOM(myBoard);
 displayDOM.createShipGridCells();
+displayDOM.setUpAxisButton();

@@ -8,6 +8,7 @@ export function createBoardDOM(Gameboard) {
     gridCell.setAttribute('data-x', element.posX);
     gridCell.setAttribute('data-y', element.posY);
     gridCell.addEventListener('dragenter', dragEnter);
+    gridCell.addEventListener('dragover', dragOver);
     gridCell.addEventListener('drop', dragDrop);
     boardDOM.appendChild(gridCell);
   });
@@ -25,14 +26,32 @@ export function createShipGridCells() {
     for (let index = 0; index < sizeOfShip; index++) {
       const shipCell = document.createElement('div');
       shipCell.classList.add('ship-cell');
-      shipCell.addEventListener('dragstart', dragStart);
-      shipCell.addEventListener('dragend', dragEnd);
       shipContainer.appendChild(shipCell);
     }
   });
 }
 
+export function setUpAxisButton() {
+  const axisButton = document.querySelector('#axis-btn');
+
+  axisButton.innerText = 'X-AXIS';
+  axisButton.setAttribute('data-axis', 'x');
+
+  axisButton.addEventListener('click', () => {
+    if (axisButton.getAttribute('data-axis') === 'x') {
+      axisButton.setAttribute('data-axis', 'y');
+      axisButton.innerText = 'Y-AXIS';
+    } else {
+      axisButton.setAttribute('data-axis', 'x');
+      axisButton.innerText = 'X-AXIS';
+    }
+  });
+}
+
 function dragStart(e) {
+  e.dataTransfer.setData('text', e.target.getAttribute('data-ship'));
+  console.log(e.target);
+  e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => {
     e.target.classList.add('dragging');
   }, 0);
@@ -43,7 +62,10 @@ function dragEnd(e) {
   if (!e.target.classList.contains('.ship-cell')) {
     e.target.classList.remove('dragging');
   }
-  console.log(e);
+}
+
+function dragOver(e) {
+  e.preventDefault();
 }
 
 function dragEnter(e) {
@@ -63,20 +85,32 @@ function dragEnter(e) {
     y: e.target.getAttribute('data-y'),
   };
 
-  const cellsInDirection = document.querySelectorAll(`[data-y='${coords.y}']`);
-  const cellsAfterCurrent = 9 - coords.x;
-  const cellsBeforeCurrent = coords.x - 1;
+  const axisButton = document.querySelector('#axis-btn');
+  const axisToUse = axisButton.getAttribute('data-axis');
+
+  let oppositeAxis;
+  if (axisToUse === 'x') {
+    oppositeAxis = 'y';
+  } else {
+    oppositeAxis = 'x';
+  }
+
+  console.log(coords[axisToUse]);
+
+  const cellsInDirection = document.querySelectorAll(`[data-${oppositeAxis}='${coords[oppositeAxis]}']`);
+  const cellsAfterCurrent = 9 - coords[axisToUse];
+  const cellsBeforeCurrent = coords[axisToUse] - 1;
   const cellsToChange = [];
 
   if (cellsAfterCurrent >= shipSize - 1) {
     for (let index = 0; index < cellsInDirection.length; index++) {
-      if (parseInt(cellsInDirection[index].getAttribute('data-x'), 10) > coords.x) {
+      if (parseInt(cellsInDirection[index].getAttribute(`data-${axisToUse}`), 10) > coords[axisToUse]) {
         cellsToChange.push(cellsInDirection[index]);
       }
     }
   } else if (cellsBeforeCurrent >= shipSize - 1) {
     for (let index = 0; index < cellsInDirection.length; index++) {
-      if (parseInt(cellsInDirection[index].getAttribute('data-x'), 10) < coords.x) {
+      if (parseInt(cellsInDirection[index].getAttribute(`data-${axisToUse}`), 10) < coords[axisToUse]) {
         cellsToChange.push(cellsInDirection[index]);
       }
     }
@@ -93,12 +127,9 @@ function dragEnter(e) {
 
 function dragDrop(e) {
   e.preventDefault();
-  const shipcont = document.querySelector('.dragging');
-  const { childNodes } = shipcont;
-  // const shipSize = shipcont.getAttribute('data-ship');
-  // const currentPosition = parseInt(e.target.getAttribute('data-coord').slice(-1), 10);
-  // console.log(shipSize, currentPosition);
-  // console.log(e.target.nextSibling);
+  console.log(e);
+  const shipID = e.dataTransfer.getData('text');
+  const shipDOMElement = document.querySelector(`[data-ship='${shipID}']`);
 }
 
 function dragLeave(e) {
