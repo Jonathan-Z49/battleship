@@ -33,7 +33,8 @@ export function createShipGridCells() {
 
 export function setUpAxisButton() {
   const axisButton = document.querySelector('#axis-btn');
-
+  const ships = document.querySelectorAll('.ship-container');
+  const allShips = document.querySelector('.all-ships');
   axisButton.innerText = 'X-AXIS';
   axisButton.setAttribute('data-axis', 'x');
 
@@ -41,16 +42,23 @@ export function setUpAxisButton() {
     if (axisButton.getAttribute('data-axis') === 'x') {
       axisButton.setAttribute('data-axis', 'y');
       axisButton.innerText = 'Y-AXIS';
+      allShips.classList.add('vertical');
+      ships.forEach((cell) => {
+        cell.classList.add('vertical');
+      });
     } else {
       axisButton.setAttribute('data-axis', 'x');
       axisButton.innerText = 'X-AXIS';
+      allShips.classList.remove('vertical');
+      ships.forEach((cell) => {
+        cell.classList.remove('vertical');
+      });
     }
   });
 }
 
 function dragStart(e) {
   e.dataTransfer.setData('text', e.target.getAttribute('data-ship'));
-  console.log(e.target);
   e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => {
     e.target.classList.add('dragging');
@@ -70,7 +78,7 @@ function dragOver(e) {
 
 function dragEnter(e) {
   e.preventDefault();
-
+  console.log(e.dataTransfer.getData('text'));
   const hoveredCells = document.querySelectorAll('.dragHover');
 
   hoveredCells.forEach((cell) => {
