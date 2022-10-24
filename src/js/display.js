@@ -1,7 +1,6 @@
 export function createBoardDOM(Gameboard) {
   const boardDOM = document.querySelector('#board');
   boardDOM.addEventListener('dragleave', dragLeave);
-
   Gameboard.board.forEach((element) => {
     const gridCell = document.createElement('div');
     gridCell.classList.add('cell');
@@ -26,6 +25,7 @@ export function createShipGridCells() {
     for (let index = 0; index < sizeOfShip; index++) {
       const shipCell = document.createElement('div');
       shipCell.classList.add('ship-cell');
+      shipCell.setAttribute('data-shipcell', sizeOfShip);
       shipContainer.appendChild(shipCell);
     }
   });
@@ -56,7 +56,6 @@ export function setUpAxisButton() {
     }
   });
 }
-
 function dragStart(e) {
   e.dataTransfer.setData('text', e.target.getAttribute('data-ship'));
   e.dataTransfer.effectAllowed = 'move';
@@ -69,6 +68,10 @@ function dragEnd(e) {
   e.preventDefault();
   if (!e.target.classList.contains('.ship-cell')) {
     e.target.classList.remove('dragging');
+    const hoveredCells = document.querySelectorAll('.dragHover');
+    hoveredCells.forEach((cell) => {
+      cell.classList.remove('dragHover');
+    });
   }
 }
 
@@ -78,8 +81,11 @@ function dragOver(e) {
 
 function dragEnter(e) {
   e.preventDefault();
-  console.log(e.dataTransfer.getData('text'));
   const hoveredCells = document.querySelectorAll('.dragHover');
+  const cellsWithBlockedImage = document.querySelectorAll('.blocked');
+  cellsWithBlockedImage.forEach((cell) => {
+    cell.classList.remove('blocked');
+  });
 
   hoveredCells.forEach((cell) => {
     cell.classList.remove('dragHover');
@@ -103,9 +109,8 @@ function dragEnter(e) {
     oppositeAxis = 'x';
   }
 
-  console.log(coords[axisToUse]);
-
   const cellsInDirection = document.querySelectorAll(`[data-${oppositeAxis}='${coords[oppositeAxis]}']`);
+
   const cellsAfterCurrent = 9 - coords[axisToUse];
   const cellsBeforeCurrent = coords[axisToUse] - 1;
   const cellsToChange = [];
@@ -125,19 +130,51 @@ function dragEnter(e) {
     cellsToChange.reverse();
   }
 
-  for (let i = 0; i < shipSize - 1; i++) {
-    console.log(cellsToChange[i]);
-    cellsToChange[i].classList.add('dragHover');
-  }
+  cellsToChange.splice(0 + shipSize - 1);
+
+  let isCellUsed = false;
+  let cellsToRemoveHover;
 
   e.target.classList.add('dragHover');
+
+  for (let i = 0; i < cellsToChange.length; i++) {
+    if (cellsToChange[i].classList.contains('used')) {
+      isCellUsed = true;
+      cellsToRemoveHover = document.querySelectorAll('.dragHover');
+      break;
+    } else {
+      cellsToChange[i].classList.add('dragHover');
+    }
+  }
+
+  if (isCellUsed) {
+    cellsToRemoveHover.forEach((cell) => {
+      cell.classList.remove('dragHover');
+    });
+    e.target.classList.add('blocked');
+  }
 }
 
 function dragDrop(e) {
   e.preventDefault();
-  console.log(e);
+  const blockedCell = document.querySelector('.blocked');
+  console.log(blockedCell);
+  if (blockedCell) {
+    console.log('drop');
+    blockedCell.classList.remove('blocked');
+  }
   const shipID = e.dataTransfer.getData('text');
   const shipDOMElement = document.querySelector(`[data-ship='${shipID}']`);
+  const hoveredCells = document.querySelectorAll('.dragHover');
+  const { childNodes } = shipDOMElement;
+
+  for (let i = 0; i < hoveredCells.length; i++) {
+    hoveredCells[i].appendChild(childNodes[i].cloneNode(true));
+    hoveredCells[i].classList.add('used');
+    hoveredCells[i].removeEventListener('dragenter', dragEnter, false);
+    hoveredCells[i].removeEventListener('dragover', dragOver, false);
+    hoveredCells[i].removeEventListener('drop', dragDrop, false);
+  }
 }
 
 function dragLeave(e) {
