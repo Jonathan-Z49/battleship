@@ -46,6 +46,8 @@ body {
   grid-template-rows: repeat(10, 1fr);
   .cell {
     border: 1px solid black;
+    user-select: none;
+    cursor: pointer;
     &.blocked {
       background-image: url('https://cdn-icons-png.flaticon.com/512/718/718672.png');
       background-size: 100% 100%;
@@ -86,6 +88,10 @@ body {
   position: relative;
   align-items: flex-start;
   padding: 3rem 1rem 1rem 1rem;
+  transition: 200ms ease-out;
+  &.fade {
+    transform: scale(0);
+  }
   &.vertical {
     flex-direction: row;
     align-items: center;

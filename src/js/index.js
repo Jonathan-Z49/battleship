@@ -5,4 +5,7 @@ import initialize from './display';
 import GameBoard from './gameboard';
 
 const myBoard = new GameBoard();
+const testBoard = new GameBoard();
+testBoard.randomBoard();
+console.log(testBoard.board);
 initialize(myBoard);
