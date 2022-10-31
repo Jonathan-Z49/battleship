@@ -3,7 +3,9 @@ import Ship from './ship';
 export default class GameBoard {
   board = [];
 
-  shipList = [];
+  hitCount = 0;
+
+  totalShipTiles = 0;
 
   constructor() {
     for (let i = 0; i < 10; i++) {
@@ -31,7 +33,7 @@ export default class GameBoard {
     const index = this.findTileIndex(coordX, coordY);
     if (this.board[index].ship === null) {
       this.board[index].ship = ship;
-      this.shipList.push(ship);
+      this.totalShipTiles += 1;
     }
   }
 
@@ -43,16 +45,17 @@ export default class GameBoard {
       if (this.board[index].ship != null) {
         this.board[index].ship.hit();
       }
+      this.hitCount += 1;
+      return true;
     }
+    return false;
   }
 
   allShipsSunk() {
-    for (let index = 0; index < this.shipList.length; index++) {
-      if (!this.shipList[index].isSunk()) {
-        return false;
-      }
+    if (this.hitCount === this.totalShipTiles && this.totalShipTiles !== 0) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   randomBoard() {

@@ -37,17 +37,28 @@ body {
   gap: 3rem;
 }
 
-#board {
+.board {
   display: grid;
   border: 1px solid black;
   width: 500px;
   height: 500px;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
+  &:first-of-type {
+    .cell {
+      cursor: default;
+    }
+  }
   .cell {
     border: 1px solid black;
     user-select: none;
     cursor: pointer;
+    &.hit {
+      background-color: red;
+    }
+    &.missed {
+      background-color: blue;
+    }
     &.blocked {
       background-image: url('https://cdn-icons-png.flaticon.com/512/718/718672.png');
       background-size: 100% 100%;
@@ -89,7 +100,7 @@ body {
   align-items: flex-start;
   padding: 3rem 1rem 1rem 1rem;
   transition: 200ms ease-out;
-  &.fade {
+  &.fade-out {
     transform: scale(0);
   }
   &.vertical {

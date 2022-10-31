@@ -1,21 +1,47 @@
 import Ship from './ship';
+import GameBoard from './gameboard';
 
-let board = null;
+const board = new GameBoard();
+const computerBoard = new GameBoard();
+computerBoard.randomBoard();
 
-function createBoardDOM(Gameboard) {
-  board = Gameboard;
-  const boardDOM = document.querySelector('#board');
-  boardDOM.addEventListener('dragleave', dragLeave);
-  Gameboard.board.forEach((element) => {
+export default function initialize() {
+  createBoardDOM();
+  createShipGridCells();
+  setUpAxisButton();
+}
+
+function createBoardDOM(isComputerBoard = false) {
+  console.log(board, computerBoard);
+  const computerBoardDOM = document.createElement('div');
+  const boardDOM = document.querySelector('.board');
+  computerBoardDOM.classList.add('board');
+  if (!isComputerBoard) {
+    boardDOM.addEventListener('dragleave', dragLeave);
+  }
+
+  const boardToLoop = isComputerBoard ? computerBoard : board;
+
+  boardToLoop.board.forEach((element) => {
     const gridCell = document.createElement('div');
     gridCell.classList.add('cell');
     gridCell.setAttribute('data-x', element.posX);
     gridCell.setAttribute('data-y', element.posY);
-    gridCell.addEventListener('dragenter', dragEnter);
-    gridCell.addEventListener('dragover', dragOver);
-    gridCell.addEventListener('drop', dragDrop);
-    boardDOM.appendChild(gridCell);
+    if (!isComputerBoard) {
+      gridCell.addEventListener('dragenter', dragEnter);
+      gridCell.addEventListener('dragover', dragOver);
+      gridCell.addEventListener('drop', dragDrop);
+      boardDOM.appendChild(gridCell);
+    } else {
+      gridCell.addEventListener('click', clickComputerTile);
+      computerBoardDOM.appendChild(gridCell);
+    }
   });
+
+  if (isComputerBoard) {
+    return computerBoardDOM;
+  }
+  return false;
 }
 
 function createShipGridCells() {
@@ -62,10 +88,14 @@ function setUpAxisButton() {
   });
 }
 
-export default function initialize(Gameboard) {
-  createBoardDOM(Gameboard);
-  createShipGridCells();
-  setUpAxisButton();
+function clickComputerTile(e) {
+  const coordX = parseInt(e.target.getAttribute('data-x'), 10);
+  const coordY = parseInt(e.target.getAttribute('data-y'), 10);
+  if (computerBoard.receiveAttack(coordX, coordY)) {
+    e.target.classList.add('hit');
+  } else {
+    e.target.classList.add('missed');
+  }
 }
 
 function dragStart(e) {
@@ -171,7 +201,6 @@ function dragDrop(e) {
   e.preventDefault();
   const blockedCell = document.querySelector('.blocked');
   if (blockedCell) {
-    console.log('drop');
     blockedCell.classList.remove('blocked');
   }
   const shipID = e.dataTransfer.getData('text');
@@ -195,11 +224,12 @@ function dragDrop(e) {
 
   const remainingShips = document.querySelectorAll('.ship-container');
   if (remainingShips.length === 0) {
+    const computerBoardDOM = createBoardDOM(true);
     const allShipsContainer = document.querySelector('.all-ships');
     setTimeout(() => {
-      allShipsContainer.remove();
+      allShipsContainer.replaceWith(computerBoardDOM);
     }, 210);
-    allShipsContainer.classList.add('fade');
+    allShipsContainer.classList.add('fade-out');
   }
 }
 
