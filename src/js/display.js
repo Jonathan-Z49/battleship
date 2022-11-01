@@ -1,6 +1,8 @@
 import Ship from './ship';
 import GameBoard from './gameboard';
+import Computer from './computer';
 
+const computerPlayer = new Computer();
 const board = new GameBoard();
 const computerBoard = new GameBoard();
 computerBoard.randomBoard();
@@ -31,9 +33,16 @@ function createBoardDOM(isComputerBoard = false) {
       gridCell.addEventListener('dragenter', dragEnter);
       gridCell.addEventListener('dragover', dragOver);
       gridCell.addEventListener('drop', dragDrop);
+      // eslint-disable-next-line prefer-arrow-callback
+      gridCell.addEventListener('hitPlayerTileEvent', function handler(e) {
+        clickTileToHit(e, board, boardDOM, handler);
+      });
       boardDOM.appendChild(gridCell);
     } else {
-      gridCell.addEventListener('click', clickComputerTile);
+      // eslint-disable-next-line prefer-arrow-callback
+      gridCell.addEventListener('click', function handler(e) {
+        clickTileToHit(e, computerBoard, computerBoardDOM, handler, boardDOM, true);
+      });
       computerBoardDOM.appendChild(gridCell);
     }
   });
@@ -88,14 +97,47 @@ function setUpAxisButton() {
   });
 }
 
-function clickComputerTile(e) {
+function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComputer = false) {
   const coordX = parseInt(e.target.getAttribute('data-x'), 10);
   const coordY = parseInt(e.target.getAttribute('data-y'), 10);
-  if (computerBoard.receiveAttack(coordX, coordY)) {
-    e.target.classList.add('hit');
+  if (boardToAttack.receiveAttack(coordX, coordY)) {
+    e.target.classList.add('hit', 'explode');
+    const index = boardToAttack.findTileIndex(coordX, coordY);
+    if (boardToAttack.board[index].ship.sunk === true) {
+      const allHitTiles = boardDOM.querySelectorAll('.cell.hit');
+      allHitTiles.forEach((cell) => {
+        const xHitIndex = parseInt(cell.getAttribute('data-x'), 10);
+        const yHitIndex = parseInt(cell.getAttribute('data-y'), 10);
+        const indexHitTile = boardToAttack.findTileIndex(xHitIndex, yHitIndex);
+
+        if (boardToAttack.board[indexHitTile].ship.sunk === true) {
+          cell.classList.remove('hit');
+          cell.classList.add('sunk');
+        }
+      });
+    }
+    setTimeout(() => {
+      e.target.classList.remove('explode');
+    }, 550);
   } else {
     e.target.classList.add('missed');
   }
+
+  if (isComputer) {
+    const coordObj = computerPlayer.makeMove();
+    const x = coordObj.x.toString();
+    const y = coordObj.y.toString();
+    const tileToAttack = playerBoardDOM.querySelector(`[data-x='${x}'][data-y='${y}']`);
+    tileToAttack.dispatchEvent(new CustomEvent('hitPlayerTileEvent'));
+    if (tileToAttack.classList.contains('hit')) {
+      computerPlayer.updateLastTileHit();
+    }
+    if (tileToAttack.classList.contains('sunk')) {
+      computerPlayer.updateLastTileSunk();
+    }
+  }
+
+  e.target.removeEventListener('click', func);
 }
 
 function dragStart(e) {
@@ -202,34 +244,35 @@ function dragDrop(e) {
   const blockedCell = document.querySelector('.blocked');
   if (blockedCell) {
     blockedCell.classList.remove('blocked');
-  }
-  const shipID = e.dataTransfer.getData('text');
-  const shipObj = new Ship(parseInt(shipID, 10));
-  const shipDOMElement = document.querySelector(`[data-ship='${shipID}']`);
-  const hoveredCells = document.querySelectorAll('.dragHover');
-  const shipCell = shipDOMElement.firstChild;
+  } else {
+    const shipID = e.dataTransfer.getData('text');
+    const shipObj = new Ship(parseInt(shipID, 10));
+    const shipDOMElement = document.querySelector(`[data-ship='${shipID}']`);
+    const hoveredCells = document.querySelectorAll('.dragHover');
+    const shipCell = shipDOMElement.firstChild;
 
-  for (let i = 0; i < hoveredCells.length; i++) {
-    hoveredCells[i].appendChild(shipCell.cloneNode(true));
-    hoveredCells[i].classList.add('used');
-    hoveredCells[i].removeEventListener('dragenter', dragEnter, false);
-    hoveredCells[i].removeEventListener('dragover', dragOver, false);
-    hoveredCells[i].removeEventListener('drop', dragDrop, false);
-    const x = parseInt(hoveredCells[i].getAttribute('data-x'), 10);
-    const y = parseInt(hoveredCells[i].getAttribute('data-y'), 10);
-    board.place(shipObj, x, y);
-  }
+    for (let i = 0; i < hoveredCells.length; i++) {
+      hoveredCells[i].appendChild(shipCell.cloneNode(true));
+      hoveredCells[i].classList.add('used');
+      hoveredCells[i].removeEventListener('dragenter', dragEnter, false);
+      hoveredCells[i].removeEventListener('dragover', dragOver, false);
+      hoveredCells[i].removeEventListener('drop', dragDrop, false);
+      const x = parseInt(hoveredCells[i].getAttribute('data-x'), 10);
+      const y = parseInt(hoveredCells[i].getAttribute('data-y'), 10);
+      board.place(shipObj, x, y);
+    }
 
-  shipDOMElement.remove();
+    shipDOMElement.remove();
 
-  const remainingShips = document.querySelectorAll('.ship-container');
-  if (remainingShips.length === 0) {
-    const computerBoardDOM = createBoardDOM(true);
-    const allShipsContainer = document.querySelector('.all-ships');
-    setTimeout(() => {
-      allShipsContainer.replaceWith(computerBoardDOM);
-    }, 210);
-    allShipsContainer.classList.add('fade-out');
+    const remainingShips = document.querySelectorAll('.ship-container');
+    if (remainingShips.length === 0) {
+      const computerBoardDOM = createBoardDOM(true);
+      const allShipsContainer = document.querySelector('.all-ships');
+      setTimeout(() => {
+        allShipsContainer.replaceWith(computerBoardDOM);
+      }, 210);
+      allShipsContainer.classList.add('fade-out');
+    }
   }
 }
 

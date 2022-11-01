@@ -49,23 +49,16 @@ body {
       cursor: default;
     }
   }
+  &:nth-of-type(even) {
+    .cell:not(.hit, .missed, .sunk):hover {
+      background-color: grey;
+    }
+  }
+  
   .cell {
     border: 1px solid black;
     user-select: none;
     cursor: pointer;
-    &.hit {
-      background-color: red;
-    }
-    &.missed {
-      background-color: blue;
-    }
-    &.blocked {
-      background-image: url('https://cdn-icons-png.flaticon.com/512/718/718672.png');
-      background-size: 100% 100%;
-    }
-    &.dragHover {
-        background-color: grey;
-    }
     .ship-cell {
       width: 100%;
       height: 100%;
@@ -81,6 +74,40 @@ body {
       &[data-shipcell="5"] {
         background-color: #818cf8;
       }
+    }
+    &.hit {
+      cursor: default;
+      background-color: red;
+      .ship-cell {
+        background-color: inherit;
+      }
+      &.explode {
+        background-image: url('https://i.gifer.com/origin/a0/a07ad08920f303f655251b1a0b353b86_w200.gif');
+        background-size: 100% 100%;
+        .ship-cell {
+          background-image: inherit;
+          background-size: inherit;
+        }
+      }
+    }
+    &.missed {
+      background-color: #0077ff;
+    }
+    &.sunk {
+      cursor: default;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/3389/3389149.png');
+      background-size: 100% 100%;
+      .ship-cell {
+        background-image: inherit;
+        background-size: inherit;
+      }
+    }
+    &.blocked {
+      background-image: url('https://cdn-icons-png.flaticon.com/512/718/718672.png');
+      background-size: 100% 100%;
+    }
+    &.dragHover {
+        background-color: grey;
     }
   }
 }
