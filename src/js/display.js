@@ -14,7 +14,6 @@ export default function initialize() {
 }
 
 function createBoardDOM(isComputerBoard = false) {
-  console.log(board, computerBoard);
   const computerBoardDOM = document.createElement('div');
   const boardDOM = document.querySelector('.board');
   computerBoardDOM.classList.add('board');
@@ -33,13 +32,11 @@ function createBoardDOM(isComputerBoard = false) {
       gridCell.addEventListener('dragenter', dragEnter);
       gridCell.addEventListener('dragover', dragOver);
       gridCell.addEventListener('drop', dragDrop);
-      // eslint-disable-next-line prefer-arrow-callback
       gridCell.addEventListener('hitPlayerTileEvent', function handler(e) {
         clickTileToHit(e, board, boardDOM, handler);
       });
       boardDOM.appendChild(gridCell);
     } else {
-      // eslint-disable-next-line prefer-arrow-callback
       gridCell.addEventListener('click', function handler(e) {
         clickTileToHit(e, computerBoard, computerBoardDOM, handler, boardDOM, true);
       });
@@ -98,6 +95,7 @@ function setUpAxisButton() {
 }
 
 function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComputer = false) {
+  console.log('here');
   const coordX = parseInt(e.target.getAttribute('data-x'), 10);
   const coordY = parseInt(e.target.getAttribute('data-y'), 10);
   if (boardToAttack.receiveAttack(coordX, coordY)) {
@@ -137,7 +135,19 @@ function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComp
     }
   }
 
+  if (computerBoard.allShipsSunk()) {
+    console.log('endc');
+  }
+
+  if (board.allShipsSunk()) {
+    console.log('endp');
+  }
+
   e.target.removeEventListener('click', func);
+}
+
+function displayWinner(winner) {
+
 }
 
 function dragStart(e) {

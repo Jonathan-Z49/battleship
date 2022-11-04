@@ -4,24 +4,57 @@ export default class Computer {
   adjacentTiles = [];
 
   makeMove() {
-    let tile;
-    if (this.adjacentTiles.length === 0) {
+    let tile = {
+      x: null, y: null, hit: false, axis: null, sunk: false,
+    };
+
+    if (this.usedTiles.length > 0) {
+      tile = this.usedTiles[this.usedTiles.length - 1];
+    }
+
+    if (this.adjacentTiles.length === 0 || this.usedTiles.length === 0) {
       let randX = Math.floor(Math.random() * 10);
       let randY = Math.floor(Math.random() * 10);
-      while (this.checkIfUsed(randX, randY)) {
+      tile = {
+        x: randX, y: randY, hit: false, axis: null, sunk: false,
+      };
+      while (this.checkIfUsed(randX, randY, this.usedTiles)) {
         randX = Math.floor(Math.random() * 10);
         randY = Math.floor(Math.random() * 10);
-        tile = { x: randX, y: randY, hit: false };
+        tile = {
+          x: randX, y: randY, hit: false, axis: null, sunk: false,
+        };
       }
       this.usedTiles.push(tile);
+
       return tile;
     }
+
+    if (tile.axis === null && tile.hit) {
+      const adjTile = this.adjacentTiles.shift();
+      this.usedTiles.push(adjTile);
+      return adjTile;
+    }
+
+    if (tile.axis !== null && tile.hit) {
+      this.filterByAxis(tile.axis);
+      const adjTile = this.adjacentTiles.shift();
+      this.usedTiles.push(adjTile);
+      return adjTile;
+    }
+
+    if (tile.axis !== null && !tile.hit) {
+      const adjTile = this.adjacentTiles.shift();
+      this.usedTiles.push(adjTile);
+      return adjTile;
+    }
+
     return null;
   }
 
-  checkIfUsed(x, y) {
-    for (let index = 0; index < this.usedTiles.length; index++) {
-      if (this.usedTiles[index].x === x && this.usedTiles[index].y === y) {
+  checkIfUsed(x, y, arr) {
+    for (let index = 0; index < arr.length; index++) {
+      if (arr[index].x === x && arr[index].y === y) {
         return true;
       }
     }
@@ -29,18 +62,45 @@ export default class Computer {
   }
 
   updateLastTileHit() {
-    this.usedTiles[this.usedTiles.length - 1].hit = true;
-    const randX = Math.floor(Math.random() * 10);
-    const randY = Math.floor(Math.random() * 10);
-    const leftTile = { x: randX - 1, y: randY };
-    const rightTile = { x: randX + 1, y: randY };
-    const topTile = { x: randX, y: randY - 1 };
-    const bottomTile = { x: randX, y: randY + 1 };
-    this.adjacentTiles.push(leftTile, rightTile, topTile, bottomTile);
+    const lastTile = this.usedTiles[this.usedTiles.length - 1];
+    lastTile.hit = true;
+
+    const leftTile = {
+      x: lastTile.x - 1, y: lastTile.y, hit: false, axis: 'x', sunk: false,
+    };
+    const rightTile = {
+      x: lastTile.x + 1, y: lastTile.y, hit: false, axis: 'x', sunk: false,
+    };
+    const topTile = {
+      x: lastTile.x, y: lastTile.y - 1, hit: false, axis: 'y', sunk: false,
+    };
+    const bottomTile = {
+      x: lastTile.x, y: lastTile.y + 1, hit: false, axis: 'y', sunk: false,
+    };
+
+    this.adjacentTiles.push(leftTile, topTile, rightTile, bottomTile);
+    this.removeOutOfBounds();
+
+    let result = [];
+    result = this.adjacentTiles.filter((tile) => !this.checkIfUsed(tile.x, tile.y, this.usedTiles));
+
+    this.adjacentTiles = result;
   }
 
   updateLastTileSunk() {
-    this.updateLastTileHit();
+    this.usedTiles[this.usedTiles.length - 1].sunk = true;
+    this.usedTiles[this.usedTiles.length - 1].hit = true;
     this.adjacentTiles = [];
+  }
+
+  filterByAxis(axis) {
+    const result = this.adjacentTiles.filter((tile) => tile.axis === axis);
+    this.adjacentTiles = result;
+  }
+
+  removeOutOfBounds() {
+    const result = this.adjacentTiles.filter((tile) => tile.x >= 0 && tile.y >= 0
+    && tile.x <= 9 && tile.y <= 9);
+    this.adjacentTiles = result;
   }
 }

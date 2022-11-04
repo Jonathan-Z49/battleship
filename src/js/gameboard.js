@@ -44,9 +44,9 @@ export default class GameBoard {
       this.board[index].hit = true;
       if (this.board[index].ship != null) {
         this.board[index].ship.hit();
+        this.hitCount += 1;
         return true;
       }
-      this.hitCount += 1;
     }
     return false;
   }
