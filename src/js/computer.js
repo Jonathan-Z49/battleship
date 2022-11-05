@@ -103,4 +103,9 @@ export default class Computer {
     && tile.x <= 9 && tile.y <= 9);
     this.adjacentTiles = result;
   }
+
+  reset() {
+    this.adjacentTiles = [];
+    this.usedTiles = [];
+  }
 }

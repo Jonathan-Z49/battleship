@@ -6,11 +6,28 @@ const computerPlayer = new Computer();
 const board = new GameBoard();
 const computerBoard = new GameBoard();
 computerBoard.randomBoard();
+let pageClone = null;
 
 export default function initialize() {
   createBoardDOM();
   createShipGridCells();
   setUpAxisButton();
+  computerPlayer.reset();
+  resetDOM();
+}
+
+function resetDOM() {
+  const page = document.querySelector('#content');
+  const resetButton = document.querySelector('#resetButton');
+  resetButton.addEventListener('click', buttonResetGame);
+  pageClone = page.cloneNode(true);
+
+  const title = document.querySelector('.instructions');
+  title.classList.remove('active');
+  title.innerText = 'PLACE YOUR SHIPS';
+
+  const slider = document.querySelector('.slider');
+  slider.classList.add('active');
 }
 
 function createBoardDOM(isComputerBoard = false) {
@@ -72,20 +89,18 @@ function setUpAxisButton() {
   const axisButton = document.querySelector('#axis-btn');
   const ships = document.querySelectorAll('.ship-container');
   const allShips = document.querySelector('.all-ships');
-  axisButton.innerText = 'X-AXIS';
+  axisButton.innerText = 'ROTATE';
   axisButton.setAttribute('data-axis', 'x');
 
   axisButton.addEventListener('click', () => {
     if (axisButton.getAttribute('data-axis') === 'x') {
       axisButton.setAttribute('data-axis', 'y');
-      axisButton.innerText = 'Y-AXIS';
       allShips.classList.add('vertical');
       ships.forEach((cell) => {
         cell.classList.add('vertical');
       });
     } else {
       axisButton.setAttribute('data-axis', 'x');
-      axisButton.innerText = 'X-AXIS';
       allShips.classList.remove('vertical');
       ships.forEach((cell) => {
         cell.classList.remove('vertical');
@@ -95,7 +110,6 @@ function setUpAxisButton() {
 }
 
 function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComputer = false) {
-  console.log('here');
   const coordX = parseInt(e.target.getAttribute('data-x'), 10);
   const coordY = parseInt(e.target.getAttribute('data-y'), 10);
   if (boardToAttack.receiveAttack(coordX, coordY)) {
@@ -121,6 +135,16 @@ function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComp
     e.target.classList.add('missed');
   }
 
+  if (computerBoard.allShipsSunk()) {
+    displayWinner('player');
+    return;
+  }
+
+  if (board.allShipsSunk()) {
+    displayWinner('computer');
+    return;
+  }
+
   if (isComputer) {
     const coordObj = computerPlayer.makeMove();
     const x = coordObj.x.toString();
@@ -135,19 +159,40 @@ function clickTileToHit(e, boardToAttack, boardDOM, func, playerBoardDOM, isComp
     }
   }
 
-  if (computerBoard.allShipsSunk()) {
-    console.log('endc');
-  }
-
-  if (board.allShipsSunk()) {
-    console.log('endp');
-  }
-
   e.target.removeEventListener('click', func);
 }
 
 function displayWinner(winner) {
+  const overlay = document.querySelector('#winner-overlay');
+  overlay.classList.add('active');
+  const nameToDisplay = document.querySelector('#winner-name');
+  nameToDisplay.innerText = winner === 'player' ? 'YOU WIN!' : 'YOU LOST!';
+  const slider = document.querySelector('.slider');
+  slider.classList.remove('active');
+}
 
+function buttonResetGame(e) {
+  const overlay = document.querySelector('#winner-overlay');
+  overlay.classList.remove('active');
+  const contentToReplace = document.querySelector('#content');
+
+  const cellsToDeleteShip = pageClone.querySelectorAll('.ship-cell');
+  const cellsToDeleteBoard = pageClone.querySelectorAll('.cell');
+
+  for (let i = 0; i < cellsToDeleteShip.length; i++) {
+    cellsToDeleteShip[i].remove();
+  }
+
+  for (let i = 0; i < cellsToDeleteBoard.length; i++) {
+    cellsToDeleteBoard[i].remove();
+  }
+
+  contentToReplace.replaceWith(pageClone);
+
+  board.reset();
+  computerBoard.reset();
+  computerBoard.randomBoard();
+  initialize();
 }
 
 function dragStart(e) {
@@ -276,6 +321,8 @@ function dragDrop(e) {
 
     const remainingShips = document.querySelectorAll('.ship-container');
     if (remainingShips.length === 0) {
+      const title = document.querySelector('.instructions');
+      title.classList.add('active');
       const computerBoardDOM = createBoardDOM(true);
       const allShipsContainer = document.querySelector('.all-ships');
       setTimeout(() => {
