@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="main.js" defer></script>
+    <title>Battleship</title>
+  </head>
+  <body>
+    <header id="head" draggable="false">BATTLESHIP</header>
+    <div id="winner-overlay">
+      <h1 id="winner-name"></h1>
+      <button id="resetButton">Play again</button>
+    </div>
+    <div class="instructions-cont">
+      <h1 class="instructions"></h1>
+      <div class="slider"></div>
+    </div>
+    <section id="content">
+      <div class="board"></div>
+      <div class="all-ships" draggable="false">
+        <button id="axis-btn" draggable="false"></button>
+        <div class="ship-container" draggable="true" data-ship="2"></div>
+        <div class="ship-container" draggable="true" data-ship="3"></div>
+        <div class="ship-container" draggable="true" data-ship="3"></div>
+        <div class="ship-container" draggable="true" data-ship="4"></div>
+        <div class="ship-container" draggable="true" data-ship="5"></div>
+      </div>
+    </section>
+    <footer id="foot" draggable="false">
+      <a href="https://github.com/Jonathan-Z49/battleship"><img src="./GitHub-Mark-64px.png" alt="Github logo"></a>
+    </footer>
+  </body>
+</html>
